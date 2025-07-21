@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paddle Checkout</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .error {
+            color: red;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Paddle Checkout</h1>
+    <p>Click the button below to create a checkout session</p>
+    
+    <button id="checkoutBtn" onclick="createCheckout()">
+        Create Checkout
+    </button>
+    
+    <div id="message"></div>
+
+    <script>
+        async function createCheckout() {
+            const button = document.getElementById('checkoutBtn');
+            const message = document.getElementById('message');
+            
+            button.disabled = true;
+            button.textContent = 'Creating checkout...';
+            message.innerHTML = '';
+            
+            try {
+                const response = await fetch('/create-checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.url) {
+                    // Redirect to Paddle checkout
+                    window.location.href = data.url;
+                } else {
+                    throw new Error(data.error || 'Failed to create checkout session');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                message.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                button.disabled = false;
+                button.textContent = 'Create Checkout';
+            }
+        }
+    </script>
+</body>
+</html>
