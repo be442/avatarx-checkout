@@ -66,7 +66,7 @@ app.post('/create-checkout', async (req, res) => {
     };
 
     const response = await axios.post(
-      'https://sandbox-api.paddle.com/checkouts',
+      'https://sandbox-api.paddle.com/checkout/sessions',
       checkoutData,
       {
         headers: {
@@ -76,12 +76,7 @@ app.post('/create-checkout', async (req, res) => {
       }
     );
 
-    res.json({
-      success: true,
-      checkout_url: response.data.data.url,
-      checkout_id: response.data.data.id,
-      data: response.data
-    });
+    res.json({ url: response.data.data.url });
 
   } catch (error) {
     console.error('Paddle API Error:', error.response?.data || error.message);
