@@ -61,8 +61,7 @@ app.post('/create-checkout', async (req, res) => {
         }
       ],
       customer_email: req.body.customer_email || 'customer@example.com',
-      return_url: `${req.protocol}://${req.get('host')}/success`,
-      discount_id: req.body.discount_id || null
+      success_url: `${req.protocol}://${req.get('host')}/success`
     };
 
     const response = await axios.post(
