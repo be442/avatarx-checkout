@@ -1,0 +1,83 @@
+const express = require("express");
+const bodyParser = require("body-parser");
+const crypto = require("crypto");
+require("dotenv").config();
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// 🔐 Middleware pentru rute normale
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// 🌐 Pagina principală
+app.get("/", (req, res) => {
+  res.send(`
+    <html>
+      <head><title>Crypto Checkout</title></head>
+      <body style="font-family:sans-serif;text-align:center;margin-top:100px;">
+        <h1>AvatarX Premium</h1>
+        <p>Plătește cu crypto pentru acces premium</p>
+        <a href="https://commerce.coinbase.com/checkout/b0883a25-dc93-4fe0-a447-e21d674f2a29" target="_blank">
+          <button style="padding:12px 24px;font-size:18px;background:#1652f0;color:white;border:none;border-radius:6px;">
+            Plătește cu Crypto
+          </button>
+        </a>
+      </body>
+    </html>
+  `);
+});
+
+// ✅ Webhook Coinbase – trebuie raw body
+app.use("/webhook", bodyParser.raw({ type: "application/json" }));
+
+app.post("/webhook", (req, res) => {
+  const signature = req.headers["x-cc-webhook-signature"];
+  const rawBody = req.body;
+  const webhookSecret = process.env.COINBASE_WEBHOOK_SECRET;
+
+  // HMAC pentru verificare semnătură
+  const hmac = crypto.createHmac("sha256", webhookSecret);
+  hmac.update(rawBody);
+  const expectedSignature = hmac.digest("hex");
+
+  // Verificare semnătură
+  if (signature !== expectedSignature) {
+    console.warn("❌ Semnătura webhook invalidă");
+    return res.status(400).send("Invalid signature");
+  }
+
+  const event = JSON.parse(rawBody.toString());
+
+  console.log("✅ Webhook primit:", event.event.type);
+
+  if (event.event.type === "charge:confirmed") {
+    const email = event.event.data.metadata?.email || "neprecizat";
+    console.log(`✔️ Plata confirmată pentru email: ${email}`);
+
+    // TODO: Aici activezi contul premium în baza de date
+    // ex: activatePremiumFor(email);
+  }
+
+  res.status(200).send("Webhook primit cu succes");
+});
+
+// ✅ Pagina succes
+app.get("/success", (req, res) => {
+  res.send("<h1>✅ Plata a fost procesată cu succes!</h1>");
+});
+
+// ❌ Pagina anulare
+app.get("/cancel", (req, res) => {
+  res.send("<h1>❌ Plata a fost anulată.</h1>");
+});
+
+// 🔍 Health check
+app.get("/health", (req, res) => {
+  res.json({ status: "OK", timestamp: new Date().toISOString() });
+});
+
+// 🔥 Start server
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
+});
