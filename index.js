@@ -1,3 +1,4 @@
+
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
@@ -6,57 +7,58 @@ const fs = require("fs");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware static pentru folderul "public"
-app.use(express.static("public"));
+// Create necessary directories
+const uploadDir = "uploads/";
+const generatedDir = "public/generated/";
 
-// Middleware pentru a servi fișiere din "uploads"
-app.use("/uploads", express.static("uploads"));
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+if (!fs.existsSync(generatedDir)) {
+  fs.mkdirSync(generatedDir, { recursive: true });
+}
 
-// Configurare Multer (salvează în folderul "uploads")
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadPath = "uploads";
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath); // creează folderul dacă nu există
-    }
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-    const uniqueName = "avatar-" + Date.now() + ext;
-    cb(null, uniqueName);
+  destination: uploadDir,
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
-// Ruta POST pentru încărcare imagine
+app.use(express.static("public"));
+app.use(express.json());
+
+// Upload route
 app.post("/upload", upload.single("avatar"), async (req, res) => {
-  const file = req.file;
-  const style = req.body.style; // nou
-
-  if (!file || !style) {
-    return res.status(400).json({ message: "Imaginea și stilul sunt obligatorii." });
+  if (!req.file) {
+    return res.status(400).json({ message: "Niciun fișier încărcat." });
   }
 
-  // Exemplu: logăm stilul ales (în viitor va fi folosit în procesarea AI)
-  console.log("Stil ales:", style);
+  const style = req.body.style || "anime"; // default
+  const inputPath = req.file.path;
 
-  // Creăm folderul processed dacă nu există
-  const processedDir = "public/processed";
-  if (!fs.existsSync(processedDir)) {
-    fs.mkdirSync(processedDir, { recursive: true });
-  }
+  console.log(`Procesând avatar în stilul: ${style}`);
 
-  // Simulare: aici vei adăuga integrarea reală AI
-  const processedPath = `public/processed/${Date.now()}-${style}-${file.originalname}`;
-  fs.copyFileSync(file.path, processedPath); // temporar copiem imaginea
+  // Simulare procesare AI (înlocuiește cu AI real dacă e cazul)
+  const outputFilename = `${Date.now()}_${style}_styled.png`;
+  const outputPath = generatedDir + outputFilename;
 
-  const downloadUrl = `/processed/${processedPath.split("/").pop()}`;
-  res.json({ message: `Avatar în stilul "${style}" procesat cu succes!`, downloadUrl });
+  // În loc de o procesare reală, copiem fișierul original ca demo
+  fs.copyFile(inputPath, outputPath, (err) => {
+    if (err) {
+      console.error("Eroare la procesare:", err);
+      return res.status(500).json({ message: "Eroare la procesare." });
+    }
+
+    return res.json({
+      message: `Avatar procesat în stilul: ${style}`,
+      downloadUrl: `/generated/${outputFilename}`,
+    });
+  });
 });
 
-// Pornim serverul
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
