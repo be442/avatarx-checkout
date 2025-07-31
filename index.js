@@ -1,4 +1,3 @@
-
 const express = require("express");
 const multer = require("multer");
 const Replicate = require("replicate");
@@ -17,8 +16,8 @@ const replicate = new Replicate({
 // Create directories if they don't exist
 const createDirectories = () => {
   const dirs = ["uploads", "generated"];
-  
-  dirs.forEach(dir => {
+
+  dirs.forEach((dir) => {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
@@ -46,12 +45,12 @@ app.post("/upload", upload.single("avatar"), async (req, res) => {
     const modelMap = {
       anime: "cjwbw/stylegan2-anime",
       superhero: "fofr/superhero-diffusion",
-      pixel: "tstramer/pixel-art-xl",
+      pixel: "jingyunliang/swinir",
       cartoon: "naklecha/cartoon-me",
       cyberpunk: "fofr/cyberpunk-style",
       fantasy: "lambdal/text-to-image-fantasy",
       pixar: "fofr/3d-avatar-generator",
-      realistic: "lucataco/realistic-portrait"
+      realistic: "lucataco/realistic-portrait",
     };
 
     const model = modelMap[style] || modelMap.anime;

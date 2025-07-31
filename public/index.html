@@ -1,41 +1,46 @@
-<h2>Încarcă Avatarul Tău</h2>
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <title>AvatarX</title>
+</head>
+<body style="font-family:sans-serif; text-align:center; margin-top:100px;">
+  <h1>AvatarX</h1>
+  <p>Selectează o poză și stilul dorit:</p>
 
-<form id="uploadForm" enctype="multipart/form-data">
-  <input type="file" name="avatar" accept="image/*" required />
-  
-  <label for="style">Alege stilul avatarului:</label>
-  <select name="style" id="style" required>
-    <option value="anime">Anime</option>
-    <option value="pixar">3D Pixar</option>
-    <option value="superhero">Supererou</option>
-    <option value="realistic">Realist</option>
-    <option value="cyberpunk">Cyberpunk</option>
-    <option value="fantasy">Fantasy</option>
-    <option value="cartoon">Cartoon</option>
-    <option value="pixel">Pixel Art</option>
-  </select>
+  <form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="avatar" accept="image/*" required /><br/><br/>
 
-  <br /><br />
-  <button type="submit">Încarcă și procesează</button>
-</form>
+    <select name="style">
+      <option value="anime">Anime</option>
+      <option value="supererou">Supererou</option>
+      <option value="pixel">Pixel Art</option>
+      <option value="cartoon">Cartoon</option>
+      <option value="cyberpunk">Cyberpunk</option>
+      <option value="fantasy">Fantasy</option>
+      <option value="3d">3D Pixar</option>
+      <option value="realist">Realist</option>
+    </select><br/><br/>
 
-<div id="result"></div>
+    <button type="submit">Încarcă și procesează</button>
+  </form>
 
-<script>
-  document.getElementById("uploadForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    formData.append("style", document.getElementById("style").value);
+  <div id="result" style="margin-top:20px;"></div>
 
-    const response = await fetch("/upload", {
-      method: "POST",
-      body: formData,
+  <script>
+    document.getElementById("uploadForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const response = await fetch("/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      document.getElementById("result").innerHTML = `
+        <p>${data.message}</p>
+        ${data.downloadUrl ? `<a href="${data.downloadUrl}" target="_blank">Descarcă avatarul</a>` : ''}
+      `;
     });
-    const data = await response.json();
-
-    document.getElementById("result").innerHTML = `
-      <p>${data.message}</p>
-      ${data.downloadUrl ? `<a href="${data.downloadUrl}" target="_blank">Descarcă avatarul</a>` : ''}
-    `;
-  });
-</script>
+  </script>
+</body>
+</html>
