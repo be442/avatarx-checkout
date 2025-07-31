@@ -43,21 +43,27 @@ app.post("/upload", upload.single("avatar"), async (req, res) => {
 
   try {
     const modelMap = {
-      anime: "cjwbw/stylegan2-anime",
-      supererou: "fofr/superhero-diffusion",
-      pixel: "tstramer/pixel-art-xl",
-      cartoon: "naklecha/cartoon-me",
-      cyberpunk: "fofr/cyberpunk-style",
-      fantasy: "lambdal/text-to-image-fantasy",
-      "3d": "fofr/3d-avatar-generator",
-      realist: "lucataco/realistic-portrait",
+      anime: "tencentarc/photomaker",
+      supererou: "fofr/superhero-diffusion", 
+      pixel: "andreasjansson/stable-diffusion-inpainting",
+      cartoon: "fofr/face-to-many",
+      cyberpunk: "fofr/sdxl-turbo",
+      fantasy: "stability-ai/stable-diffusion-xl-base-1.0",
+      "3d": "fofr/face-to-many",
+      realist: "tencentarc/photomaker",
     };
 
     const model = modelMap[style] || modelMap.anime;
 
+    // Convert image to base64 for API
+    const imageBuffer = fs.readFileSync(inputPath);
+    const base64Image = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
+
     const output = await replicate.run(model, {
       input: {
-        image: fs.createReadStream(inputPath),
+        input_image: base64Image,
+        prompt: `Transform this person into ${style} style avatar`,
+        num_outputs: 1,
       },
     });
 
