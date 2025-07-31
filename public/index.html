@@ -1,87 +1,38 @@
-<!doctype html>
-<html lang="ro">
-  <head>
-    <meta charset="UTF-8" />
-    <title>AvatarX | Upload Avatar</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background: #f5f6fa;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        flex-direction: column;
-      }
+<h2>Upload Avatar</h2>
+<form id="uploadForm" enctype="multipart/form-data">
+  <input type="file" name="avatar" accept="image/*" required />
 
-      h2 {
-        color: #2f3640;
-      }
+  <label for="style">Alege un stil:</label>
+  <select name="style" id="style" required>
+    <option value="anime">Anime</option>
+    <option value="3d">3D Pixar</option>
+    <option value="cyberpunk">Cyberpunk</option>
+    <option value="superhero">Superhero</option>
+    <option value="fantasy">Fantasy</option>
+    <option value="cartoon">Cartoon</option>
+    <option value="barbie">Barbie / Ken</option>
+    <option value="realistic">Realistic</option>
+  </select>
 
-      form {
-        background: white;
-        padding: 20px 30px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        text-align: center;
-      }
+  <button type="submit">Încarcă și procesează</button>
+</form>
 
-      input[type="file"] {
-        margin-bottom: 10px;
-      }
+<div id="result"></div>
 
-      button {
-        background: #4cd137;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
-      }
-
-      button:hover {
-        background: #44bd32;
-      }
-
-      #result {
-        margin-top: 20px;
-      }
-
-      a {
-        color: #0097e6;
-        text-decoration: none;
-        font-weight: bold;
-      }
-    </style>
-  </head>
-  <body>
-    <h2>Încarcă Avatarul Tău</h2>
-    <form id="uploadForm" enctype="multipart/form-data">
-      <input type="file" name="avatar" accept="image/*" required />
-      <br />
-      <button type="submit">Încarcă și procesează</button>
-    </form>
-
-    <div id="result"></div>
-
-    <script>
-      document
-        .getElementById("uploadForm")
-        .addEventListener("submit", async function (e) {
-          e.preventDefault();
-          const formData = new FormData(this);
-          const response = await fetch("/upload", {
-            method: "POST",
-            body: formData,
-          });
-
-          const data = await response.json();
-          document.getElementById("result").innerHTML = `
-        <p>${data.message}</p>
-        ${data.downloadUrl ? `<a href="${data.downloadUrl}" target="_blank">⬇️ Descarcă avatarul</a>` : ""}
-      `;
-        });
-    </script>
-  </body>
-</html>
+<script>
+  document
+    .getElementById("uploadForm")
+    .addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const response = await fetch("/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      document.getElementById("result").innerHTML = `
+      <p>${data.message}</p>
+      ${data.downloadUrl ? `<a href="${data.downloadUrl}" target="_blank">Descarcă avatarul</a>` : ""}
+    `;
+    });
+</script>
