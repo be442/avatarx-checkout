@@ -44,13 +44,13 @@ app.post("/upload", upload.single("avatar"), async (req, res) => {
   try {
     const modelMap = {
       anime: "lucataco/anime-style-image",
-      supererou: "fofr/superhero-diffusion", 
+      superhero: "fofr/superhero-diffusion",
       pixel: "jingyunliang/swinir",
       cartoon: "naklecha/cartoon-me",
       cyberpunk: "fofr/cyberpunk-style",
       fantasy: "nitrosocke/archer-diffusion",
-      "3d": "fofr/3d-avatar-generator",
-      realist: "lucataco/realistic-portrait",
+      pixar: "fofr/3d-avatar-generator",
+      realistic: "lucataco/realistic-portrait"
     };
 
     const model = modelMap[style] || modelMap.anime;
