@@ -1,9 +1,49 @@
 
 const express = require("express");
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const UPLOADS_DIR = path.join(__dirname, "uploads");
+const PROCESSED_DIR = path.join(__dirname, "processed");
+
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
+if (!fs.existsSync(PROCESSED_DIR)) fs.mkdirSync(PROCESSED_DIR);
+
+const storage = multer.diskStorage({
+  destination: UPLOADS_DIR,
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage });
+
 app.use(express.static("public")); // pentru imagini, CSS etc. dacă adaugi mai târziu
+
+app.post("/upload", upload.single("avatar"), async (req, res) => {
+  const file = req.file;
+  if (!file) return res.status(400).json({ message: "Nicio imagine încărcată" });
+
+  // ✅ Simulare procesare AI
+  const processedPath = path.join(PROCESSED_DIR, "ai_" + file.filename);
+  fs.copyFileSync(file.path, processedPath); // în loc de AI reală
+
+  // ✅ Simulăm verificare cont premium (aici poți conecta Coinbase în viitor)
+  const isPremium = true;
+
+  if (isPremium) {
+    const downloadUrl = `/processed/ai_${file.filename}`;
+    return res.json({ message: "Imagine procesată cu succes!", downloadUrl });
+  } else {
+    return res.json({ message: "Plătește pentru a descărca imaginea procesată!" });
+  }
+});
+
+app.use("/processed", express.static(PROCESSED_DIR));
 
 app.get("/", (req, res) => {
   res.send(`
