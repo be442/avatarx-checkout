@@ -31,16 +31,29 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Ruta POST pentru încărcare imagine
-app.post("/upload", upload.single("avatar"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: "Niciun fișier încărcat." });
+app.post("/upload", upload.single("avatar"), async (req, res) => {
+  const file = req.file;
+  const style = req.body.style; // nou
+
+  if (!file || !style) {
+    return res.status(400).json({ message: "Imaginea și stilul sunt obligatorii." });
   }
 
-  const downloadUrl = `/uploads/${req.file.filename}`;
-  res.json({
-    message: "Imaginea a fost procesată cu succes!",
-    downloadUrl: downloadUrl,
-  });
+  // Exemplu: logăm stilul ales (în viitor va fi folosit în procesarea AI)
+  console.log("Stil ales:", style);
+
+  // Creăm folderul processed dacă nu există
+  const processedDir = "public/processed";
+  if (!fs.existsSync(processedDir)) {
+    fs.mkdirSync(processedDir, { recursive: true });
+  }
+
+  // Simulare: aici vei adăuga integrarea reală AI
+  const processedPath = `public/processed/${Date.now()}-${style}-${file.originalname}`;
+  fs.copyFileSync(file.path, processedPath); // temporar copiem imaginea
+
+  const downloadUrl = `/processed/${processedPath.split("/").pop()}`;
+  res.json({ message: `Avatar în stilul "${style}" procesat cu succes!`, downloadUrl });
 });
 
 // Pornim serverul
