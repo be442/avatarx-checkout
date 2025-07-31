@@ -43,14 +43,14 @@ app.post("/upload", upload.single("avatar"), async (req, res) => {
 
   try {
     const modelMap = {
-      anime: "tencentarc/photomaker",
+      anime: "lucataco/anime-style-image",
       supererou: "fofr/superhero-diffusion", 
-      pixel: "andreasjansson/stable-diffusion-inpainting",
-      cartoon: "fofr/face-to-many",
-      cyberpunk: "fofr/sdxl-turbo",
-      fantasy: "stability-ai/stable-diffusion-xl-base-1.0",
-      "3d": "fofr/face-to-many",
-      realist: "tencentarc/photomaker",
+      pixel: "jingyunliang/swinir",
+      cartoon: "naklecha/cartoon-me",
+      cyberpunk: "fofr/cyberpunk-style",
+      fantasy: "nitrosocke/archer-diffusion",
+      "3d": "fofr/3d-avatar-generator",
+      realist: "lucataco/realistic-portrait",
     };
 
     const model = modelMap[style] || modelMap.anime;
