@@ -1,0 +1,87 @@
+const express = require("express");
+const multer = require("multer");
+const Replicate = require("replicate");
+const fs = require("fs");
+const path = require("path");
+require("dotenv").config();
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Replicate config
+const replicate = new Replicate({
+  auth: process.env.REPLICATE_API_TOKEN,
+});
+
+// Create directories if they don't exist
+const createDirectories = () => {
+  const dirs = ["uploads", "generated"];
+  dirs.forEach((dir) => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+};
+
+// Initialize directories
+createDirectories();
+
+// Upload config
+const upload = multer({ dest: "uploads/" });
+
+app.use(express.static("public"));
+app.use("/generated", express.static("generated"));
+app.use(express.json());
+
+// Upload endpoint
+app.post("/upload", upload.single("avatar"), async (req, res) => {
+  const style = req.body.style || "anime";
+  const inputPath = req.file.path;
+  const outputName = `avatar_${Date.now()}.png`;
+  const outputPath = path.join("generated", outputName);
+
+  try {
+    const modelMap = {
+      anime: "cjwbw/stylegan2-anime:db21e45e0c889f967aeb9fa691cd60e0b134d7be80d829b91f83c5923e55b8c4",
+      superhero: "fofr/superhero-diffusion:b95ef9e021de455199d28e6fe6c45cbd55e66a7f15a71b6a02c1689d2ec41b64",
+      pixel: "tstramer/pixel-art-xl:6e2a21228e60fcf1df517aa57c789c32618e6c4c6bcd9ff14cb305a1e3bd8c1e",
+      cartoon: "naklecha/cartoon-me:60f93d39209977c0f3ad302b2820c1f4a2b785f6a82f67240a90d0a18f77a23d",
+      cyberpunk: "fofr/cyberpunk-style:095c68b7eb964b52f79e40b5e4b0947399c561b4a76d6ce90d005a5c6a5b6e83",
+      fantasy: "nitrosocke/archer-diffusion:db21e45e0c889f967aeb9fa691cd60e0b134d7be80d829b91f83c5923e55b8c4",
+      pixar: "fofr/3d-avatar-generator:b48c3ccff9ac8bfbcdce2f28fe491efb606f9625014c354eced7a04ad157a86a",
+      realistic: "lucataco/realistic-portrait:fec3ff8cce13ae7cf7b2f99e6679a34ce6b87b0a55fc43bc798356dd3c39b3b1",
+    };
+
+    const model = modelMap[style] || modelMap.anime;
+
+    const output = await replicate.run(model, {
+      input: {
+        image: fs.createReadStream(inputPath),
+      },
+    });
+
+    const imageUrl = Array.isArray(output) ? output[0] : output;
+
+    const imageRes = await fetch(imageUrl);
+    const buffer = await imageRes.arrayBuffer();
+    fs.writeFileSync(outputPath, Buffer.from(buffer));
+
+    res.json({
+      message: `Avatar generat cu succes în stilul ${style}!`,
+      downloadUrl: `/generated/${outputName}`,
+    });
+  } catch (error) {
+    console.error("Eroare la procesare:", error);
+    res.status(500).json({ message: "Eroare la generare avatar." });
+  } finally {
+    // Clean up uploaded file
+    if (fs.existsSync(inputPath)) {
+      fs.unlinkSync(inputPath);
+    }
+  }
+});
+
+// Start server
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server pornit pe http://0.0.0.0:${PORT}`);
+});
